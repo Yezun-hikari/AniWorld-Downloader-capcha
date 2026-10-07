@@ -100,12 +100,14 @@ RUN adduser --disabled-password --gecos "" aniworld \
     && mkdir -p /app/Downloads /home/aniworld/.aniworld \
     && chown -R aniworld:aniworld /app /home/aniworld
 
-# Install minimal system dependencies (xvfb and core Chromium shared libraries) (with cache)
+# Install minimal system dependencies (xvfb, core Chromium shared libraries, and Intel QSV drivers) (with cache)
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update && apt-get install -y --no-install-recommends --option=Apt::Retries=3 \
     xvfb \
     ffmpeg \
+    intel-media-va-driver \
+    libmfx-gen1.2 \
     libnss3 \
     libnspr4 \
     libatk1.0-0 \
