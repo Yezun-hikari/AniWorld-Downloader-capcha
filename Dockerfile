@@ -23,8 +23,6 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     fi && \
     apt-get update && apt-get install -y --no-install-recommends --option=Apt::Retries=3 upx-ucl
 
-
-
 # Create a virtual environment for the app
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH" \
@@ -100,14 +98,12 @@ RUN adduser --disabled-password --gecos "" aniworld \
     && mkdir -p /app/Downloads /home/aniworld/.aniworld \
     && chown -R aniworld:aniworld /app /home/aniworld
 
-# Install minimal system dependencies (xvfb, core Chromium shared libraries, and Intel QSV drivers) (with cache)
+# Install minimal system dependencies and conditionally install Intel QSV drivers for amd64
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update && apt-get install -y --no-install-recommends --option=Apt::Retries=3 \
     xvfb \
     ffmpeg \
-    intel-media-va-driver \
-    libmfx-gen1.2 \
     libnss3 \
     libnspr4 \
     libatk1.0-0 \
@@ -125,7 +121,12 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     libx11-6 \
     libx11-xcb1 \
     libxcb1 \
-    libxext6
+    libxext6 && \
+    if [ "$(dpkg --print-architecture)" = "amd64" ]; then \
+        apt-get install -y --no-install-recommends --option=Apt::Retries=3 \
+        intel-media-va-driver \
+        libmfx-gen1.2; \
+    fi
 
 # Copy virtual env and playwright browsers from builder stage. ffmpeg is not in
 # here, the runner installs it from apt above.
